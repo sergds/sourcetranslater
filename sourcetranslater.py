@@ -27,6 +27,13 @@ except AttributeError:
     ap.print_help()
     exit()
 # translate!
+def mangletext_withcmds(cmdstrlist, rounds):
+    res = cmdstrlist.copy()
+    for sb in cmdstrlist[1]:
+        if len(sb) > 0:
+            res[1][res[1].index(sb)] = mangletext(sb, rounds)
+    return res
+
 def mangletext(sourcetext, rounds):
     print(f'mangling: new victim "{sourcetext}"')
     intermediate = sourcetext
@@ -93,7 +100,7 @@ except FileExistsError:
         os.mkdir(os.path.join("output", "platform", "resources"))
 
 skip_ftypes = []
-for ftype in ["chat", "closecaption", "gameui", basedir]:
+for ftype in ["chat", "gameui", basedir, "closecaption"]:
     if os.path.isfile(f"output/hl2/resources/{ftype}_{final_lang}.txt"):
         skip_ftypes.append(ftype)
 
@@ -106,15 +113,24 @@ for ftype in files:
         print("skipping " + ftype)
         continue
     print("[New Victim] Translating " + ftype)
-    lang = valvelang.parse_as_dict(files[ftype].read())
+    if ftype == "closecaption":
+        print("NOTE: parsing cmds in closecaption to save them from google translate")
+        print("WARNING: strings with cmds will be translated in parts!")
+        lang = valvelang.parse_as_dict(files[ftype].read(), True)
+    else:
+        print("NOTE: Not parsing cmds in non-closecaption file, as it will cause problems!")
+        lang = valvelang.parse_as_dict(files[ftype].read(), False)
     print(f"parsed valvelang: {len(list(lang.values()))} pairs")
 
     for tag in lang:
-        if "[english]" in tag: # skip refere--nce tags
+        if "[english]" in tag: # skip reference tags
             continue
         if lang[tag] == " " or lang[tag] == "": # don't waste time on empty strings
             continue
-        lang[tag] = mangletext(lang[tag], howmany)
+        if type(lang[tag]).__name__ == 'str':
+            lang[tag] = mangletext(lang[tag], howmany)
+        elif type(lang[tag]).__name__ == 'list':
+            lang[tag] = mangletext_withcmds(lang[tag], howmany)
     if ftype == "vgui" or ftype == "platform":
         valvelang.write_lang(f"output/platform/resources/{ftype}_{final_lang}.txt", final_lang, lang)
     else:
