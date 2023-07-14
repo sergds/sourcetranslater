@@ -30,7 +30,13 @@ def disassemble_command_string(stringval):
             currcmd = currcmd + c
         else:
             currsub = currsub + c
-        
+    #Commit stale stuff.
+    if len(currsub) != 0:
+        substrings.append(currsub)
+    if len(currcmd) != 0:
+        substrings.append('')
+        cmds.append(currcmd)
+
 
     return [cmds, substrings]
 
@@ -46,8 +52,8 @@ def assemble_command_string(listcmdstr):
     return "".join(res)
 
 def test_cmdstring_processing():
-    teststr = "<clr:255,0,0>This is red<I> and italics<B> and<cr>bold<B><I><clr:255,255,255> white again.<sfx><norepeat:1>"
-    t = disassemble_command_string("<clr:255,0,0>This is red<I> and italics<B> and<cr>bold<B><I><clr:255,255,255> white again.<sfx><norepeat:1>")
+    teststr = "<sfx><len:5>[Тиканье часов]"
+    t = disassemble_command_string(teststr)
     t2 = assemble_command_string(t)
     print(teststr)
     print(t2)
