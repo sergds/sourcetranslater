@@ -1,3 +1,4 @@
+import math
 import valvelang
 import googletrans
 import utils
@@ -65,7 +66,7 @@ if __name__ == '__main__':
 
     def mangletext(sourcetext, rounds):
         if sourcetext.count("\n") > 1:
-            print(f'mangling: new multiplex')
+            print(f'mangling: new multiplex/multiliner')
         else:
             print(f'mangling: new single victim ' + sourcetext)
         intermediate = sourcetext
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         finally:
             pass
         if sourcetext.count("\n") > 1:
-            print(f'mangled: multiplex')
+            print(f'mangled: multiplex/multiline string')
         else:
             print(f"mangled: {sourcetext} --> {intermediate}")
         return intermediate
@@ -101,7 +102,7 @@ if __name__ == '__main__':
             files[ftype] = f
 
     # game langs
-    for ftype in ["chat", "gameui" , "basemodui", basedir, "closecaption", "subtitles"]:
+    for ftype in ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]:
         f = utils.open_game_lang_by_name(basedir_full, final_lang, ftype)
         if f != None:
             files[ftype] = f
@@ -134,9 +135,14 @@ if __name__ == '__main__':
             os.mkdir(os.path.join("output", "platform"))
             os.mkdir(os.path.join("output", basedir, "resource"))
             os.mkdir(os.path.join("output", "platform", "resource"))
+        else:
+            if not os.path.isdir(os.path.join("output", basedir)):
+                os.mkdir(os.path.join("output", basedir))
+            if not os.path.isdir(os.path.join("output", basedir, "resource")):
+                os.mkdir(os.path.join("output", basedir, "resource"))
 
     skip_ftypes = []
-    for ftype in ["chat", "gameui" , "basemodui", basedir, "closecaption", "subtitles"]:
+    for ftype in ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]:
         if os.path.isfile(f"output/{basedir}/resource/{ftype}_{final_lang}.txt"):
             skip_ftypes.append(ftype)
 
@@ -160,12 +166,14 @@ if __name__ == '__main__':
         curcount = 0
         print(f"parsed valvelang: {pcount} pairs")
 
-        pool = ThreadPool(processes=6)
+        pool = ThreadPool(processes=8)
         lang_tags_needed = []
         lang_vals_needed = []
         multiplex_size = 10
         for tag in lang:
             if "[english]" in tag: # skip reference tags
+                if type(lang[tag]).__name__ != 'list':
+                    lang[tag] = lang[tag].replace("\n", "")
                 continue
             if lang[tag] == " " or lang[tag] == "": # don't waste time on empty strings
                 continue
@@ -174,12 +182,17 @@ if __name__ == '__main__':
                 lang_tags_needed.append(tag)
                 lang_vals_needed.append(lang[tag])
                 continue
-            print(f"Tag {curcount}/{pcount}")
+            if final_lang != "english":
+                print(f"Tag {curcount}/{math.floor(pcount/2)}") # There's about half of reference strings for translators
+            else:
+                print(f"Tag {curcount}/{pcount}")
             if type(lang[tag]).__name__ == 'list':
                 lang[tag] = mangletext_withcmds(lang[tag], howmany)
                 continue
-            if lang[tag].count("\n") > 0 or lang[tag].count("[") > 0 or lang[tag].count("$") > 0 or lang[tag].count("]") > 0: # Don't multiplex multiline or formatted stuff.
+            if lang[tag].count("\n") > 1 or lang[tag].count("[") > 0 or lang[tag].count("$") > 0 or lang[tag].count("]") > 0: # Don't multiplex multiline or formatted stuff.
+                print("Translating A MULTILINER!!")
                 lang[tag] = mangletext(lang[tag], howmany)
+                print("Translated MULTILINER!\n " + tag + " = " + lang[tag])
                 continue
             lang_tags_needed.append(tag)
             lang_vals_needed.append(lang[tag])
@@ -189,6 +202,7 @@ if __name__ == '__main__':
                 mux_res = mangletext(mux, howmany)
                 res = multiplex.demultiplex_requests(mux_res)
                 if len(lang_tags_needed) != len(res):
+                    print("Borked multiplex!")
                     print(len(lang_vals_needed), len(res))
                     print(lang_vals_needed, res)
                     exit(1)
@@ -224,6 +238,7 @@ if __name__ == '__main__':
             mux_res = mangletext(mux, howmany)
             res = multiplex.demultiplex_requests(mux_res)
             if len(lang_tags_needed) != len(res):
+                print("Borked multiplex!")
                 print(len(lang_vals_needed), len(res))
                 print(lang_vals_needed, res)
                 exit(1)
