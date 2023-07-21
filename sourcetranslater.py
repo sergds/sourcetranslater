@@ -25,7 +25,7 @@ def complain_ratelimit(e):
     print("Error! Google rate limited us? Calming down... " + e)
 
 
-t = googletrans.Translator(service_urls=['translate.google.ru'], user_agent="Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
+t = googletrans.Translator(service_urls=['translate.google.ru'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
 
 if __name__ == '__main__':
 
@@ -102,7 +102,12 @@ if __name__ == '__main__':
             files[ftype] = f
 
     # game langs
-    for ftype in ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]:
+    ftypes_known = ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]
+    # Handle basegame files in DLCs
+    if len(basedir.split("_")) > 1:
+        ftypes_known.append(basedir.split("_")[0])
+
+    for ftype in ftypes_known:
         f = utils.open_game_lang_by_name(basedir_full, final_lang, ftype)
         if f != None:
             files[ftype] = f
@@ -142,7 +147,7 @@ if __name__ == '__main__':
                 os.mkdir(os.path.join("output", basedir, "resource"))
 
     skip_ftypes = []
-    for ftype in ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]:
+    for ftype in ftypes_known:
         if os.path.isfile(f"output/{basedir}/resource/{ftype}_{final_lang}.txt"):
             skip_ftypes.append(ftype)
 
@@ -166,7 +171,7 @@ if __name__ == '__main__':
         curcount = 0
         print(f"parsed valvelang: {pcount} pairs")
 
-        pool = ThreadPool(processes=8)
+        pool = ThreadPool(processes=6)
         lang_tags_needed = []
         lang_vals_needed = []
         multiplex_size = 10
@@ -226,6 +231,7 @@ if __name__ == '__main__':
                 res = result.copy()
                 if type(lang[tag]).__name__ == 'list':
                     if utils.has_cmd("<sfx>", res[1]):
+                        print(f"Before correction: {res[0]} = {res[1]}")
                         res[1] = utils.restore_subtitles_formatting(res[1])
                 lang[res[0]] = res[1]
                 print(f"{res[0]} = {res[1]}")
