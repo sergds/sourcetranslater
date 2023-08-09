@@ -89,7 +89,7 @@ if __name__ == '__main__':
             print(f'mangled: multiplex/multiline string')
         else:
             print(f"mangled: {sourcetext} --> {intermediate}")
-        return intermediate
+        return intermediate.replace('"', "'") # Replace double quotes with quotes. Beacause this will break vlang file!
 
     print("Finding files to translate!")
 

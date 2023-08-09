@@ -52,11 +52,11 @@ Section "Portal 2: Google Translate Edition (RU) [TEXTONLY]"
   CreateDirectory $INSTDIR\SRCTR_BACKUP\portal2_dlc2
   CreateDirectory $INSTDIR\SRCTR_BACKUP\portal2_dlc2\resource
   CreateDirectory $INSTDIR\SRCTR_BACKUP\portal2_dlc2\media
-  CopyFiles "$INSTDIR\platform\resource\*russian.txt" "$INSTDIR\SRCTR_BACKUP\platform\resource"
-  CopyFiles "$INSTDIR\portal2\resource\*russian.txt" "$INSTDIR\SRCTR_BACKUP\portal2\resource"
-  CopyFiles "$INSTDIR\portal2_dlc1\resource\*russian.txt" "$INSTDIR\SRCTR_BACKUP\portal2_dlc1\resource"
+  CopyFiles "$INSTDIR\platform\resource\*_*.txt" "$INSTDIR\SRCTR_BACKUP\platform\resource"
+  CopyFiles "$INSTDIR\portal2\resource\*_*.txt" "$INSTDIR\SRCTR_BACKUP\portal2\resource"
+  CopyFiles "$INSTDIR\portal2_dlc1\resource\*_*.txt" "$INSTDIR\SRCTR_BACKUP\portal2_dlc1\resource"
   CopyFiles "$INSTDIR\portal2_dlc2\media\*.bik" "$INSTDIR\SRCTR_BACKUP\portal2_dlc2\media"
-  CopyFiles "$INSTDIR\portal2_dlc2\resource\*russian.txt" "$INSTDIR\SRCTR_BACKUP\portal2_dlc2\resource"
+  CopyFiles "$INSTDIR\portal2_dlc2\resource\*_*.txt" "$INSTDIR\SRCTR_BACKUP\portal2_dlc2\resource"
 
   ; Put file there
   File /r "output\*.*"
