@@ -1,6 +1,13 @@
 # Source Translater
 Mangles your Source game's text by using Google Translate. Sometimes produces funny texts.
 
+Planned (For winter holidays):
+- [ ] Code cleanup, because this was written in a couple of days for Portal 2 GTE Russian mod. OOP rewrite perhaps.
+- [ ] "ActorDB" of some sort (to keep actor's retranslated names in dialogues constant)
+- [ ] VPK support (For l4d engine lineage)
+
+### Usage
+
 ```bash
 sourcetranslater.py [-h] [--lang LANG] [--rounds ROUNDS] [--installdir INSTALLDIR] [--basedir BASEDIR]
 ```
