@@ -182,6 +182,8 @@ if __name__ == '__main__':
                 continue
             if lang[tag] == " " or lang[tag] == "": # don't waste time on empty strings
                 continue
+            if "$S" in lang[tag] or "$D" in lang[tag] or "$M" in lang[tag] or "$T" in lang[tag]: # Don't break datetime formats!
+                continue
             curcount += 1
             if ftype == "closecaption" or ftype == "subtitles":
                 lang_tags_needed.append(tag)

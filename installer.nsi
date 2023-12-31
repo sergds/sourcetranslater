@@ -41,6 +41,13 @@ Section "Portal 2: Google Translate Edition (RU) [TEXTONLY]"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   
+  ; Already installed? this is bad!
+  IfFileExists "$INSTDIR\uninstall_srctr.exe" uninst_found uninst_not_found
+  uninst_found:
+  ExecWait "$INSTDIR\uninstall_srctr.exe"
+  uninst_not_found:
+  StrCpy $0 "uninstall_srctr was NOT found"
+
   ; Back Things up
   CreateDirectory $INSTDIR\SRCTR_BACKUP
   CreateDirectory $INSTDIR\SRCTR_BACKUP\platform
