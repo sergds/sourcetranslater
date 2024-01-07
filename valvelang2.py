@@ -23,8 +23,8 @@ def write_lang(filepath, language, vlang_dict):
     """Write dict as a Valve lang"""
     vd = vlang_dict.copy()
     # first. Reassemble all cmd strings, because vdf library won't understand us otherwise (rightfully so).
-    for key in vlang_dict:
-        if type(vlang_dict[key]).__name__ == 'list':
-            vlang_dict[key] = valvelang.assemble_command_string(vlang_dict[key])
+    for key in vd:
+        if type(vd[key]).__name__ == 'list':
+            vd[key] = valvelang.assemble_command_string(vd[key])
     vd_full = {"lang": {"Language": language, "Tokens": vd}}
     vdf.dump(vd_full, open(filepath, 'wt', encoding='utf-16'))
