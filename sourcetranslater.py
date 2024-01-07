@@ -1,5 +1,5 @@
 import math
-import valvelang
+import valvelang2
 import googletrans
 import utils
 import time
@@ -37,6 +37,7 @@ if __name__ == '__main__':
     ap.add_argument("--rounds", type=int, help="How many times to retranslate")
     ap.add_argument("--installdir", type=str, help="Path to game installation (dir which contains Source game launcher like hl2.exe)")
     ap.add_argument("--basedir", type=str, help="name of game's basedir (hl2, episodic, portal, portal2)")
+    ap.add_argument("--files", type=str, help="name(s) of files to translate, comma-separated (vgui,admin,hl2)", default="")
 
     args = ap.parse_args()
     try:
@@ -45,6 +46,9 @@ if __name__ == '__main__':
         installdir = args.installdir
         basedir = args.basedir
         basedir_full = os.path.join(installdir, basedir)
+        force_files = []
+        if args.files != "":
+            force_files = args.files.split(",")
     except AttributeError:
         ap.print_help()
         exit()
@@ -101,11 +105,17 @@ if __name__ == '__main__':
 
     # game langs
     for f in fs.find_file(f"_{final_lang}.txt", firstonly=False, globsearch=True, searchpaths=[basedir])[1]:
+        if force_files != []:
+            if not (utils.ftype_from_filepath(f) in force_files):
+                continue
         files[utils.ftype_from_filepath(f)] = f
         havegame = True
 
     # platform langs
     for f in fs.find_file(f"_{final_lang}.txt", firstonly=False, globsearch=True, searchpaths=["platform"])[1]:
+        if force_files != []:
+            if not (utils.ftype_from_filepath(f) in force_files):
+                continue
         if "addons" in f:
             continue
         if utils.ftype_from_filepath(f) in files: # Handle same ftypes in platform which is kind of impossible, but still let's avoid having overwritten ftypes in dict, just in case.
@@ -187,10 +197,10 @@ if __name__ == '__main__':
         if ftype == "closecaption" or ftype == "subtitles":
             print("NOTE: parsing cmds in closecaption to save them from google translate")
             print("WARNING: strings with cmds will be translated in parts!")
-            lang = valvelang.parse_as_dict(fs.read_file_text(fpath, fbasedir), True)
+            lang = valvelang2.parse_as_dict(fs.read_file_text(fpath, fbasedir), True)
         else:
             print("NOTE: Not parsing cmds in non-closecaption file, as it will cause problems!")
-            lang = valvelang.parse_as_dict(fs.read_file_text(fpath, fbasedir), False)
+            lang = valvelang2.parse_as_dict(fs.read_file_text(fpath, fbasedir), False)
         pcount = len(list(lang.values()))
         curcount = 0
         print(f"parsed valvelang: {pcount} pairs")
@@ -280,4 +290,4 @@ if __name__ == '__main__':
             lang_tags_needed = []
             lang_vals_needed = []
         print("Writing to " + files[ftype])
-        valvelang.write_lang(os.path.join("output", files[ftype]), final_lang, lang)
+        valvelang2.write_lang(os.path.join("output", files[ftype]), final_lang, lang)

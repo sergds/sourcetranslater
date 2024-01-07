@@ -4,11 +4,11 @@
 </p>
 Mangles your Source game's text by using Google Translate. Sometimes produces funny texts.
 
-Planned (For winter holidays):
+Planned:
 - [X] VPK support (For l4d engine lineage)
-- [ ] Replace my awful unstable vdf parser with [this](https://pypi.org/project/vdf/) one
+- [X] Replace my awful unstable vdf parser with [this](https://pypi.org/project/vdf/) one
 - [ ] Code cleanup, because this was written in a couple of days for Portal 2 GTE Russian mod. OOP rewrite perhaps.
-- [ ] "ActorDB" of some sort (to keep actor's retranslated names in dialogues constant)
+- [ ] "ActorDB" of some sort (to keep actor's retranslated names in dialogues consistent)
 
 ### Usage
 
@@ -21,6 +21,7 @@ sourcetranslater.py [-h] [--lang LANG] [--rounds ROUNDS] [--installdir INSTALLDI
   --installdir INSTALLDIR
                         Path to game installation (dir which contains Source game launcher like hl2.exe)
   --basedir BASEDIR     name of game's basedir (hl2, episodic, portal, portal2)
+  --files FILES         name(s) of files to translate, comma-separated (vgui,admin,hl2)
 ```
 Example:
 ```
