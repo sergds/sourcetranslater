@@ -10,6 +10,7 @@ import shutil
 import httpx
 from multiprocessing.pool import ThreadPool
 import multiplex
+from filesystem import *
 
 cooldownN = 0
 cooldown = False
@@ -26,6 +27,8 @@ def complain_ratelimit(e):
 
 
 t = googletrans.Translator(service_urls=['translate.google.ru'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
+
+lang_pipeline = []
 
 if __name__ == '__main__':
 
@@ -70,8 +73,7 @@ if __name__ == '__main__':
         else:
             print(f'mangling: new single victim ' + sourcetext)
         intermediate = sourcetext
-        for i in range(rounds):
-            target = random.choice(list(googletrans.LANGUAGES.keys()))
+        for target in lang_pipeline:
             #print(f"mangling: {i+1}/{rounds} using {target}")
             try:
                 intermediate = t.translate(intermediate, dest=target).text
@@ -93,53 +95,74 @@ if __name__ == '__main__':
 
     print("Finding files to translate!")
 
+    fs = Filesystem(installdir)
     files = {}
-
-    # platform langs
-    for ftype in ["platform", "vgui"]:
-        f =  utils.open_platform_lang_by_name(installdir, final_lang, ftype)
-        if f != None:
-            files[ftype] = f
+    havegame = False
 
     # game langs
-    ftypes_known = ["chat", "gameui" , "basemodui", basedir, "valve", "closecaption", "subtitles"]
-    # Handle basegame files in DLCs
-    if len(basedir.split("_")) > 1:
-        ftypes_known.append(basedir.split("_")[0])
+    for f in fs.find_file(f"_{final_lang}.txt", firstonly=False, globsearch=True, searchpaths=[basedir])[1]:
+        files[utils.ftype_from_filepath(f)] = f
+        havegame = True
 
-    for ftype in ftypes_known:
-        f = utils.open_game_lang_by_name(basedir_full, final_lang, ftype)
-        if f != None:
-            files[ftype] = f
+    # platform langs
+    for f in fs.find_file(f"_{final_lang}.txt", firstonly=False, globsearch=True, searchpaths=["platform"])[1]:
+        if "addons" in f:
+            continue
+        if utils.ftype_from_filepath(f) in files: # Handle same ftypes in platform which is kind of impossible, but still let's avoid having overwritten ftypes in dict, just in case.
+            files["platform_"+utils.ftype_from_filepath(f)] = f
+            continue
+        files[utils.ftype_from_filepath(f)] = f
 
     print()
     print("......")
     print("Found: ")
     if len(files) == 0:
-        print("... nothing >:[. make sure lang files are there and not packed into VPK.")
+        print("... nothing >:[. make sure lang files are there and the the game install path is correct.")
         exit(1)
     for k in files:
         if files[k] != None:
-            print(k, files[k].name)
-    if list(files.keys()) == ["platform", "vgui"]:
-        print("There are only platform files. make sure your game/sourcemod is installed and it's lang files are not packed into VPK.")
+            print(k, files[k])
+    if not havegame:
+        print("There are only platform files. make sure your game/sourcemod is installed.")
         exit(1)
     #exit()
 
     try:
         os.mkdir("output")
-        os.mkdir(os.path.join("output", basedir))
-        os.mkdir(os.path.join("output", "platform"))
-        os.mkdir(os.path.join("output", basedir, "resource"))
-        os.mkdir(os.path.join("output", "platform", "resource"))
+        for file in files:
+            for comp in files[file].split(os.path.sep):
+                if files[file].split(os.path.sep).index(comp) == len(files[file].split(os.path.sep)) - 1:
+                    continue
+                prev_comps = []
+                currdir = ""
+                if comp == "":
+                    continue
+                if files[file].split(os.path.sep).index(comp) > 0:
+                    for prevp in files[file].split(os.path.sep)[files[file].split(os.path.sep).index(comp)-1::-1][::-1]:
+                        if prevp != "":
+                            prev_comps.append(prevp)
+                currdir = os.path.join(os.path.normpath("/".join(prev_comps)))
+                if not os.path.exists(os.path.join("output", currdir, comp)):
+                    os.mkdir(os.path.join("output", currdir, comp))
     except FileExistsError:
         if input("output already exists. remove? [y/n] ") == "y":
             shutil.rmtree('output')
             os.mkdir("output")
-            os.mkdir(os.path.join("output", basedir))
-            os.mkdir(os.path.join("output", "platform"))
-            os.mkdir(os.path.join("output", basedir, "resource"))
-            os.mkdir(os.path.join("output", "platform", "resource"))
+        for file in files:
+            for comp in files[file].split(os.path.sep):
+                if files[file].split(os.path.sep).index(comp) == len(files[file].split(os.path.sep)) - 1:
+                    continue
+                prev_comps = []
+                currdir = ""
+                if comp == "":
+                    continue
+                if files[file].split(os.path.sep).index(comp) > 0:
+                    for prevp in files[file].split(os.path.sep)[files[file].split(os.path.sep).index(comp)-1::-1][::-1]:
+                        if prevp != "":
+                            prev_comps.append(prevp)
+                currdir = os.path.join(os.path.normpath("/".join(prev_comps)))
+                if not os.path.exists(os.path.join("output", currdir, comp)):
+                    os.mkdir(os.path.join("output", currdir, comp))
         else:
             if not os.path.isdir(os.path.join("output", basedir)):
                 os.mkdir(os.path.join("output", basedir))
@@ -147,15 +170,16 @@ if __name__ == '__main__':
                 os.mkdir(os.path.join("output", basedir, "resource"))
 
     skip_ftypes = []
-    for ftype in ftypes_known:
-        if os.path.isfile(f"output/{basedir}/resource/{ftype}_{final_lang}.txt"):
-            skip_ftypes.append(ftype)
-
-    for ftype in ["platform", "vgui"]:
-        if os.path.isfile(f"output/platform/resource/{ftype}_{final_lang}.txt"):
-            skip_ftypes.append(ftype)
-
     for ftype in files:
+        if os.path.isfile(os.path.join("output", os.path.normpath(files[ftype]))):
+            skip_ftypes.append(ftype)
+
+    for _ in range(howmany):
+        lang_pipeline.append(random.choice(list(googletrans.LANGUAGES.keys())))
+    print(f"Language pipeline for this run: {lang_pipeline}")
+    for ftype in files:
+        fpath = '/'.join(files[ftype].split(os.path.sep)[1::])
+        fbasedir = files[ftype].split(os.path.sep)[0]
         if ftype in skip_ftypes:
             print("skipping " + ftype)
             continue
@@ -163,10 +187,10 @@ if __name__ == '__main__':
         if ftype == "closecaption" or ftype == "subtitles":
             print("NOTE: parsing cmds in closecaption to save them from google translate")
             print("WARNING: strings with cmds will be translated in parts!")
-            lang = valvelang.parse_as_dict(files[ftype].read(), True)
+            lang = valvelang.parse_as_dict(fs.read_file_text(fpath, fbasedir), True)
         else:
             print("NOTE: Not parsing cmds in non-closecaption file, as it will cause problems!")
-            lang = valvelang.parse_as_dict(files[ftype].read(), False)
+            lang = valvelang.parse_as_dict(fs.read_file_text(fpath, fbasedir), False)
         pcount = len(list(lang.values()))
         curcount = 0
         print(f"parsed valvelang: {pcount} pairs")
@@ -255,7 +279,5 @@ if __name__ == '__main__':
                 print(f"{lang_tags_needed[i]} = {res[i]}")
             lang_tags_needed = []
             lang_vals_needed = []
-        if ftype == "vgui" or ftype == "platform":
-            valvelang.write_lang(f"output/platform/resource/{ftype}_{final_lang}.txt", final_lang, lang)
-        else:
-            valvelang.write_lang(f"output/{basedir}/resource/{ftype}_{final_lang}.txt", final_lang, lang)
+        print("Writing to " + files[ftype])
+        valvelang.write_lang(os.path.join("output", files[ftype]), final_lang, lang)

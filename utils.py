@@ -1,3 +1,5 @@
+import os
+
 # Take a subtitle broken by GTranslate and fix it's square brackets, or remove excessive bracketing
 # Use only on strings with <sfx> command
 def restore_subtitles_formatting(cmdsublist: list):
@@ -47,3 +49,7 @@ def open_platform_lang_by_name(installdir, final_lang, ftype):
         return open(f"{installdir}/platform/resource/{ftype}_{final_lang}.txt", "r", errors='ignore', encoding="utf16")
     except Exception as e:
         print(f"failed opening {ftype}")
+
+# Derive a kind (vgui, gameui, hl2, etc.) of language vdf file from it's name.
+def ftype_from_filepath(filepath: str) -> str:
+    return os.path.basename(filepath).split("_")[0]

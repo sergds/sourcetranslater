@@ -1,10 +1,14 @@
 # Source Translater
+<p align="center">
+  <img width="179.92" height="190" src="_img/srctr_logo.svg">
+</p>
 Mangles your Source game's text by using Google Translate. Sometimes produces funny texts.
 
 Planned (For winter holidays):
+- [X] VPK support (For l4d engine lineage)
+- [ ] Replace my awful unstable vdf parser with [this](https://pypi.org/project/vdf/) one
 - [ ] Code cleanup, because this was written in a couple of days for Portal 2 GTE Russian mod. OOP rewrite perhaps.
 - [ ] "ActorDB" of some sort (to keep actor's retranslated names in dialogues constant)
-- [ ] VPK support (For l4d engine lineage)
 
 ### Usage
 
