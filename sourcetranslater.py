@@ -26,7 +26,7 @@ def complain_ratelimit(e):
     print("Error! Google rate limited us? Calming down... " + e)
 
 
-t = googletrans.Translator(service_urls=['translate.google.ru'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
+t = googletrans.Translator(service_urls=['translate.google.cat'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
 
 lang_pipeline = []
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     def mangletext_task(tag, val, rounds):
         ival = val
-        time.sleep(random.randint(1,5))
+        time.sleep(random.uniform(0.3, 2.7))
         if type(val).__name__ == 'str':
             ival = mangletext(ival, rounds)
         elif type(val).__name__ == 'list':
@@ -83,7 +83,7 @@ if __name__ == '__main__':
                 intermediate = t.translate(intermediate, dest=target).text
             except Exception as e:
                 print("Error! Google rate limited us? Calming down... " + str(e))
-                time.sleep(random.randint(2,10))
+                time.sleep(random.randint(1,3))
             #time.sleep(random.randint(1, 3))
         try:
             intermediate = t.translate(intermediate, dest=utils.get_key(googletrans.LANGUAGES, final_lang)).text
