@@ -29,17 +29,19 @@ def complain_ratelimit(e):
 t = googletrans.Translator(service_urls=['translate.google.cat'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
 
 lang_pipeline = []
+non_interactive = False
 
 if __name__ == '__main__':
-
     ap = argparse.ArgumentParser(description="Horribly butchers Source games by means of Google Translate!", add_help=True)
-    ap.add_argument("--lang", type=str, help="The full name of 'targeted' language (english, russian, spanish, german...)")
-    ap.add_argument("--rounds", type=int, help="How many times to retranslate")
-    ap.add_argument("--installdir", type=str, help="Path to game installation (dir which contains Source game launcher like hl2.exe)")
-    ap.add_argument("--basedir", type=str, help="name of game's basedir (hl2, episodic, portal, portal2)")
+    ap.add_argument("--lang", type=str, help="The full name of 'targeted' language (english, russian, spanish, german...)", required=True)
+    ap.add_argument("--rounds", type=int, help="How many times to retranslate", required=True)
+    ap.add_argument("--installdir", type=str, help="Path to game installation (dir which contains Source game launcher like hl2.exe)", required=True)
+    ap.add_argument("--basedir", type=str, help="name of game's basedir (hl2, episodic, portal, portal2)", required=True)
     ap.add_argument("--files", type=str, help="name(s) of files to translate, comma-separated (vgui,admin,hl2)", default="")
+    ap.add_argument("-N", "--non-interactive", action='store_true', help="Automatically answer 'no' to any prompts. Helpful in automation scripts (e.g tools/srctr_unattended.sh).")
 
     args = ap.parse_args()
+    print("SourceTranslater is starting...")
     try:
         final_lang = args.lang.lower()
         howmany = int(args.rounds)
@@ -49,7 +51,11 @@ if __name__ == '__main__':
         force_files = []
         if args.files != "":
             force_files = args.files.split(",")
-    except AttributeError:
+        if args.non_interactive:
+            print("NON-INTERACTIVE MODE!")
+            non_interactive = True
+    except AttributeError as e:
+        print(e)
         ap.print_help()
         exit()
 
@@ -155,7 +161,12 @@ if __name__ == '__main__':
                 if not os.path.exists(os.path.join("output", currdir, comp)):
                     os.mkdir(os.path.join("output", currdir, comp))
     except FileExistsError:
-        if input("output already exists. remove? [y/n] ") == "y":
+        response = False
+        if not non_interactive:
+            response = input("output already exists. remove? [y/n] ").lower() == "y"
+        else:
+            print("output already exists. remove? N [NON-INTERACTIVE MODE]")
+        if response:
             shutil.rmtree('output')
             os.mkdir("output")
         for file in files:
