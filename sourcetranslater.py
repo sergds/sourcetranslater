@@ -8,9 +8,56 @@ import os
 import argparse
 import shutil
 import httpx
-from multiprocessing.pool import ThreadPool
+from multiprocessing import  Pool
 import multiplex
 from filesystem import *
+
+def mangletext_task(tag, val, rounds, finallang, langpipeline):
+    global final_lang
+    final_lang = finallang
+    global lang_pipeline
+    lang_pipeline = langpipeline
+    ival = val
+    time.sleep(random.uniform(0.3, 2.7))
+    if type(val).__name__ == 'str':
+        ival = mangletext(ival, rounds)
+    elif type(val).__name__ == 'list':
+        ival = val.copy()
+        ival = mangletext_withcmds(ival, rounds)
+    return [tag, ival]
+# translate!
+def mangletext_withcmds(cmdstrlist, rounds):
+    res = cmdstrlist.copy()
+    for sb in cmdstrlist[1]:
+        if len(sb) > 0:
+            res[1][res[1].index(sb)] = mangletext(sb, rounds)
+    return res
+
+def mangletext(sourcetext, rounds):
+    if sourcetext.count("\n") > 1:
+        print(f'mangling: new multiplex/multiliner')
+    else:
+        print(f'mangling: new single victim ' + sourcetext)
+    intermediate = sourcetext
+    for target in lang_pipeline:
+        #print(f"mangling: {i+1}/{rounds} using {target}")
+        try:
+            intermediate = t.translate(intermediate, dest=target).text
+        except Exception as e:
+            print("Error! Google rate limited us? Calming down... " + str(e))
+            time.sleep(random.randint(1,3))
+        #time.sleep(random.randint(1, 3))
+    try:
+        intermediate = t.translate(intermediate, dest=utils.get_key(googletrans.LANGUAGES, final_lang)).text
+    except Exception as e:
+        print("Error! Google rate limited us? Calming down... " + str(e))
+    finally:
+        pass
+    if sourcetext.count("\n") > 1:
+        print(f'mangled: multiplex/multiline string')
+    else:
+        print(f"mangled: {sourcetext} --> {intermediate}")
+    return intermediate.replace('"', "'") # Replace double quotes with quotes. Beacause this will break vlang file!
 
 cooldownN = 0
 cooldown = False
@@ -26,7 +73,7 @@ def complain_ratelimit(e):
     print("Error! Google rate limited us? Calming down... " + e)
 
 
-t = googletrans.Translator(service_urls=['translate.google.cat'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", timeout=httpx.Timeout(10.0), raise_exception=True)
+t = googletrans.Translator(service_urls=['translate.google.ru'], user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0", timeout=httpx.Timeout(15.0), raise_exception=True)
 
 lang_pipeline = []
 non_interactive = False
@@ -58,50 +105,6 @@ if __name__ == '__main__':
         print(e)
         ap.print_help()
         exit()
-
-    def mangletext_task(tag, val, rounds):
-        ival = val
-        time.sleep(random.uniform(0.3, 2.7))
-        if type(val).__name__ == 'str':
-            ival = mangletext(ival, rounds)
-        elif type(val).__name__ == 'list':
-            ival = val.copy()
-            ival = mangletext_withcmds(ival, rounds)
-        return [tag, ival]
-
-    # translate!
-    def mangletext_withcmds(cmdstrlist, rounds):
-        res = cmdstrlist.copy()
-        for sb in cmdstrlist[1]:
-            if len(sb) > 0:
-                res[1][res[1].index(sb)] = mangletext(sb, rounds)
-        return res
-
-    def mangletext(sourcetext, rounds):
-        if sourcetext.count("\n") > 1:
-            print(f'mangling: new multiplex/multiliner')
-        else:
-            print(f'mangling: new single victim ' + sourcetext)
-        intermediate = sourcetext
-        for target in lang_pipeline:
-            #print(f"mangling: {i+1}/{rounds} using {target}")
-            try:
-                intermediate = t.translate(intermediate, dest=target).text
-            except Exception as e:
-                print("Error! Google rate limited us? Calming down... " + str(e))
-                time.sleep(random.randint(1,3))
-            #time.sleep(random.randint(1, 3))
-        try:
-            intermediate = t.translate(intermediate, dest=utils.get_key(googletrans.LANGUAGES, final_lang)).text
-        except Exception as e:
-            print("Error! Google rate limited us? Calming down... " + str(e))
-        finally:
-            pass
-        if sourcetext.count("\n") > 1:
-            print(f'mangled: multiplex/multiline string')
-        else:
-            print(f"mangled: {sourcetext} --> {intermediate}")
-        return intermediate.replace('"', "'") # Replace double quotes with quotes. Beacause this will break vlang file!
 
     print("Finding files to translate!")
 
@@ -216,7 +219,7 @@ if __name__ == '__main__':
         curcount = 0
         print(f"parsed valvelang: {pcount} pairs")
 
-        pool = ThreadPool(processes=6)
+        pool = Pool(processes=6)
         lang_tags_needed = []
         lang_vals_needed = []
         multiplex_size = 10
@@ -271,7 +274,7 @@ if __name__ == '__main__':
 #            elif type(lang[tag]).__name__ == 'list':
 #                lang[tag] = mangletext_withcmds(lang[tag], howmany)
         if ftype == "closecaption" or ftype == "subtitles":
-            args = [(lang_tags_needed[i], lang_vals_needed[i], howmany) for i in range(len(lang_tags_needed))]
+            args = [(lang_tags_needed[i], lang_vals_needed[i], howmany, final_lang, lang_pipeline) for i in range(len(lang_tags_needed))]
             print(f"NOTE: Using a thread pool instead of multiplexing for subtitle stuff!")
             print(f"Submitting a job of {len(lang_tags_needed)} pairs to a thread pool")
             for result in pool.starmap(mangletext_task, args):
