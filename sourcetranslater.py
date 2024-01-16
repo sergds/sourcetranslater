@@ -85,6 +85,7 @@ if __name__ == '__main__':
     ap.add_argument("--installdir", type=str, help="Path to game installation (dir which contains Source game launcher like hl2.exe)", required=True)
     ap.add_argument("--basedir", type=str, help="name of game's basedir (hl2, episodic, portal, portal2)", required=True)
     ap.add_argument("--files", type=str, help="name(s) of files to translate, comma-separated (vgui,admin,hl2)", default="")
+    ap.add_argument("--language-pipeline", type=str, help="ISO-639 name(s) of intermediate languages to retranslate to, comma-separated (uz,zh-TW,bs,la). For list see https://cloud.google.com/translate/docs/languages#neural_machine_translation_model. If set, The rounds parameter is ignored, but still required.", default="")
     ap.add_argument("-N", "--non-interactive", action='store_true', help="Automatically answer 'no' to any prompts. Helpful in automation scripts (e.g tools/srctr_unattended.sh).")
 
     args = ap.parse_args()
@@ -101,6 +102,8 @@ if __name__ == '__main__':
         if args.non_interactive:
             print("NON-INTERACTIVE MODE!")
             non_interactive = True
+        if args.language_pipeline != "":
+            lang_pipeline = args.language_pipeline.split(',')
     except AttributeError as e:
         print(e)
         ap.print_help()
@@ -198,8 +201,9 @@ if __name__ == '__main__':
         if os.path.isfile(os.path.join("output", os.path.normpath(files[ftype]))):
             skip_ftypes.append(ftype)
 
-    for _ in range(howmany):
-        lang_pipeline.append(random.choice(list(googletrans.LANGUAGES.keys())))
+    if len(lang_pipeline) == 0:
+        for _ in range(howmany):
+            lang_pipeline.append(random.choice(list(googletrans.LANGUAGES.keys())))
     print(f"Language pipeline for this run: {lang_pipeline}")
     for ftype in files:
         fpath = '/'.join(files[ftype].split(os.path.sep)[1::])

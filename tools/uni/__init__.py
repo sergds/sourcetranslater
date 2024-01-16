@@ -1,0 +1,1 @@
+# dum dum module for universal installer to store data

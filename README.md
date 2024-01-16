@@ -13,15 +13,24 @@ Planned:
 ### Usage
 
 ```bash
-sourcetranslater.py [-h] [--lang LANG] [--rounds ROUNDS] [--installdir INSTALLDIR] [--basedir BASEDIR]
+sourcetranslater.py [-h] --lang LANG --rounds ROUNDS --installdir INSTALLDIR --basedir BASEDIR [--files FILES] [--language-pipeline LANGUAGE_PIPELINE] [-N]
 ```
 ```
+Horribly butchers Source games by means of Google Translate!
+
+options:
+  -h, --help            show this help message and exit
   --lang LANG           The full name of 'targeted' language (english, russian, spanish, german...)
   --rounds ROUNDS       How many times to retranslate
   --installdir INSTALLDIR
                         Path to game installation (dir which contains Source game launcher like hl2.exe)
   --basedir BASEDIR     name of game's basedir (hl2, episodic, portal, portal2)
   --files FILES         name(s) of files to translate, comma-separated (vgui,admin,hl2)
+  --language-pipeline LANGUAGE_PIPELINE
+                        ISO-639 name(s) of intermediate languages to retranslate to, comma-separated (uz,zh-TW,bs,la). For list see https://cloud.google.com/translate/docs/languages#neural_machine_translation_model. If  
+                        set, The rounds parameter is ignored, but still required.
+  -N, --non-interactive
+                        Automatically answer 'no' to any prompts. Helpful in automation scripts (e.g tools/srctr_unattended.sh).
 ```
 Example:
 ```

@@ -5,3 +5,4 @@ __pycache__/*
 *.exe
 dist/
 build/
+tools/data.uni
