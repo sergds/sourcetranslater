@@ -13,6 +13,7 @@ import sys
 import atexit
 import subprocess
 import platform
+import miniaudio
 import uni
 
 # https://stackoverflow.com/questions/42004445/python-exe-not-deleting-itself
@@ -45,7 +46,10 @@ def cleanup(td):
 print(__name__)
 print(sys.modules[__name__])
 
-# Unpack everything
+pd: miniaudio.PlaybackDevice = None
+doinmusic = False
+
+# Unpack everything, setup music
 if not (os.path.exists(".uninstaller_srctr_installed") and os.path.exists("SRCTR_BACKUP")):
     td = tempfile.mkdtemp(prefix="uni")
     os.chdir(td)
@@ -53,6 +57,20 @@ if not (os.path.exists(".uninstaller_srctr_installed") and os.path.exists("SRCTR
     dat = pkgutil.get_data('uni', "data.uni")
     uc = pkgutil.get_data("uni", "uninstaller.json")
     cc = pkgutil.get_data("uni", "captioncompiler.exe")
+    mus = None
+    try:
+        mus = pkgutil.get_data("uni", "unimusic.ogg")
+    except Exception:
+        print("welp, no music for today")
+    if mus != None:
+        fmus = open("mus.ogg", "wb")
+        fmus.write(mus)
+        fmus.close()
+        musstr = miniaudio.stream_file("mus.ogg")
+        pd = miniaudio.PlaybackDevice(app_name="UNInstaller")
+        pd.start(musstr)
+        doinmusic = True
+
     f1 = open("data.uni", "wb")
     f2 = open("uninstaller.json", "wb")
     f3 = open("captioncompiler.exe", "wb")
@@ -105,7 +123,9 @@ def selfnuke():
 while True:
     event, values = window.read(timeout=10)
     event2, values2 = progresswindow.read(timeout=10)
-
+    if doinmusic:
+        if not pd.running:
+            pd.start(musstr)
     if uninstalling:
         if uninstage == 1:
             progresswindow['-SINSTALLTEXT-'].update("Restoring original files...")
@@ -129,7 +149,7 @@ while True:
             progresswindow['-SINSTALLBAR-'].update(100)
 
     if installing:
-        if stage == 1: # Gather some info about mod we are about to install
+        if stage == 1: # Gather some info about the mod we are about to install
             if not os.path.exists(window["-SINSTALLDIR-"].get()):
                 stage = 6
                 errstr = "installdir does not exist!"
@@ -141,6 +161,10 @@ while True:
             if not "bin" in os.listdir(window["-SINSTALLDIR-"].get()) and not "platform" in os.listdir(window["-SINSTALLDIR-"].get()):
                 stage = 6
                 errstr = "installdir is not a Source game!"
+                continue
+            if ".uninstaller_srctr_installed" in os.listdir(window["-SINSTALLDIR-"].get()) and "SRCTR_BACKUP" in os.listdir(window["-SINSTALLDIR-"].get()):
+                stage = 6
+                errstr = "The SourceTranslater mod is already installed for this game"
                 continue
             open("data.tmp", "wb").write(bytearray(zlib.decompress(open("data.uni", "rb").read())))
             un = tarfile.open("data.tmp")
@@ -210,7 +234,7 @@ while True:
             os.chdir(cwd)
             stage = 5
         if stage == 5:
-            progresswindow['-SINSTALLTEXT-'].update("Done! To uninstall, use uninstall.exe in gamedir or verify game files with Steam. Now close this window.")
+            progresswindow['-SINSTALLTEXT-'].update("Done! To uninstall, use uninstall.exe in gamedir and/or verify game files with Steam. Now close this window.")
             progresswindow['-SINSTALLBAR-'].update(100)
         if stage == 6:
             progresswindow['-SINSTALLTEXT-'].update("Ouch, an ERROR!: " + errstr)

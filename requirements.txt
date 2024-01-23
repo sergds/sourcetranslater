@@ -4,3 +4,6 @@ vdf==3.4
 
 # For tools:
 PySimpleGUI==4.60.5
+#PySimpleGUIQt==0.30.0 # Wait till they support pyside6 and cpython >= 3.11
+#PySide2==5.15.2.1
+miniaudio==1.59
