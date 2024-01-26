@@ -124,6 +124,9 @@ class Filesystem:
                 with open(os.path.join(self.gamepath ,bdir, os.path.normpath(filepath)), "rt", encoding="utf-16le") as f:
                     return f.read()
         for vpkfile, handle in self.loaded_vpks.items():
+            for bdir in bdirs:
+                if not bdir in vpkfile: # vpkfile contains basedir as a first path component
+                    continue # We need only vpks we CARE about.
             try:
                 f = handle[os.path.normpath(filepath).replace("\\", "/")] # vpk needs paths to be posix format
                 return f.read().decode("utf-16le")
