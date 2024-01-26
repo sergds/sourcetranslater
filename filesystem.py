@@ -124,12 +124,17 @@ class Filesystem:
                 with open(os.path.join(self.gamepath ,bdir, os.path.normpath(filepath)), "rt", encoding="utf-16le") as f:
                     return f.read()
         for vpkfile, handle in self.loaded_vpks.items():
+            topcontinue = False # Hax
             for bdir in bdirs:
-                if not bdir in vpkfile: # vpkfile contains basedir as a first path component
+                if not vpkfile.split(os.path.sep)[0] == bdir: # vpkfile contains basedir as a first path component
+                    topcontinue = True
                     continue # We need only vpks we CARE about.
+            if topcontinue:
+                continue
             try:
                 f = handle[os.path.normpath(filepath).replace("\\", "/")] # vpk needs paths to be posix format
                 return f.read().decode("utf-16le")
-            except Exception:
+            except Exception as e:
+                print(f"[Filesystem][read_file_text] exception at vpk '{vpkfile}': " + str(e))
                 continue
         return ""
