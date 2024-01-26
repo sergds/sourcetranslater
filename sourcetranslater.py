@@ -52,8 +52,7 @@ def mangletext(sourcetext, rounds):
         intermediate = t.translate(intermediate, dest=utils.get_key(googletrans.LANGUAGES, final_lang)).text
     except Exception as e:
         print("Error! Google rate limited us? Calming down... " + str(e))
-    finally:
-        pass
+        return intermediate.replace('"', "'") # Ok giving up, so return anything we can
     if sourcetext.count("\n") > 1:
         print(f'mangled: multiplex/multiline string')
     else:
@@ -230,8 +229,8 @@ if __name__ == '__main__':
         multiplex_size = 10
         for tag in lang:
             if "[english]" in tag: # skip reference tags
-                if type(lang[tag]).__name__ != 'list':
-                    lang[tag] = lang[tag].replace("\n", "")
+                #if type(lang[tag]).__name__ != 'list':
+                #    lang[tag] = lang[tag].replace("\n", "")
                 continue
             if lang[tag] == " " or lang[tag] == "": # don't waste time on empty strings
                 continue
@@ -241,6 +240,7 @@ if __name__ == '__main__':
             if ftype == "closecaption" or ftype == "subtitles":
                 lang_tags_needed.append(tag)
                 lang_vals_needed.append(lang[tag])
+                #print(tag, "=", lang[tag])
                 continue
             if final_lang != "english":
                 print(f"Tag {curcount}/{math.floor(pcount/2)}") # There's about half of reference strings for translators
