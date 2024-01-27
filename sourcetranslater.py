@@ -265,7 +265,11 @@ if __name__ == '__main__':
                     print("Borked multiplex!")
                     print(len(lang_vals_needed), len(res))
                     print(lang_vals_needed, res)
-                    exit(1)
+                    print("Solution: Mangling each tag from multiplex individually.")
+                    for idx in range(len(lang_tags_needed)):
+                        lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
+                        print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
+                    #exit(1)
                 for i in range(len(lang_tags_needed)):
                     lang[lang_tags_needed[i]] = res[i]
                     print(f"{lang_tags_needed[i]} = {res[i]}")
@@ -302,7 +306,11 @@ if __name__ == '__main__':
                 print("Borked multiplex!")
                 print(len(lang_vals_needed), len(res))
                 print(lang_vals_needed, res)
-                exit(1)
+                print("Solution: Mangling each tag from multiplex individually.")
+                for idx in range(len(lang_tags_needed)):
+                    lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
+                    print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
+                #exit(1)
             for i in range(len(lang_tags_needed)):
                 lang[lang_tags_needed[i]] = res[i]
                 print(f"{lang_tags_needed[i]} = {res[i]}")
