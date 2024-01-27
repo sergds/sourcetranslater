@@ -261,18 +261,21 @@ if __name__ == '__main__':
                 mux = multiplex.multiplex_requests(lang_vals_needed)
                 mux_res = mangletext(mux, howmany)
                 res = multiplex.demultiplex_requests(mux_res)
+                failed = False
                 if len(lang_tags_needed) != len(res):
                     print("Borked multiplex!")
+                    failed = True
                     print(len(lang_vals_needed), len(res))
                     print(lang_vals_needed, res)
                     print("Solution: Mangling each tag from multiplex individually.")
                     for idx in range(len(lang_tags_needed)):
-                        res[idx] = mangletext(lang_vals_needed[idx], howmany)
+                        lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
                         print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
                     #exit(1)
-                for i in range(len(lang_tags_needed)):
-                    lang[lang_tags_needed[i]] = res[i]
-                    print(f"{lang_tags_needed[i]} = {res[i]}")
+                if not failed:
+                    for i in range(len(lang_tags_needed)):
+                        lang[lang_tags_needed[i]] = res[i]
+                        print(f"{lang_tags_needed[i]} = {res[i]}")
                 lang_tags_needed = []
                 lang_vals_needed = []
                 continue
@@ -302,18 +305,21 @@ if __name__ == '__main__':
             mux = multiplex.multiplex_requests(lang_vals_needed)
             mux_res = mangletext(mux, howmany)
             res = multiplex.demultiplex_requests(mux_res)
+            failed = False
             if len(lang_tags_needed) != len(res):
                 print("Borked multiplex!")
+                failed = True
                 print(len(lang_vals_needed), len(res))
                 print(lang_vals_needed, res)
                 print("Solution: Mangling each tag from multiplex individually.")
                 for idx in range(len(lang_tags_needed)):
-                    res[idx] = mangletext(lang_vals_needed[idx], howmany)
+                    lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
                     print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
                 #exit(1)
-            for i in range(len(lang_tags_needed)):
-                lang[lang_tags_needed[i]] = res[i]
-                print(f"{lang_tags_needed[i]} = {res[i]}")
+            if not failed:
+                for i in range(len(lang_tags_needed)):
+                    lang[lang_tags_needed[i]] = res[i]
+                    print(f"{lang_tags_needed[i]} = {res[i]}")
             lang_tags_needed = []
             lang_vals_needed = []
         print("Writing to " + files[ftype])
