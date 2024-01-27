@@ -267,7 +267,7 @@ if __name__ == '__main__':
                     print(lang_vals_needed, res)
                     print("Solution: Mangling each tag from multiplex individually.")
                     for idx in range(len(lang_tags_needed)):
-                        lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
+                        res[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
                         print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
                     #exit(1)
                 for i in range(len(lang_tags_needed)):
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 print(lang_vals_needed, res)
                 print("Solution: Mangling each tag from multiplex individually.")
                 for idx in range(len(lang_tags_needed)):
-                    lang[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
+                    res[lang_tags_needed[idx]] = mangletext(lang_vals_needed[idx], howmany)
                     print(f"{lang_tags_needed[idx]} = {lang[lang_tags_needed[idx]]}")
                 #exit(1)
             for i in range(len(lang_tags_needed)):
